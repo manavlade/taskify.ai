@@ -1,8 +1,20 @@
-# React + Vite
+Title: "Task Management System"
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Summary:
+"Developed a full-stack task management system with features such as task creation, status management, priority-based filtering, and a comprehensive dashboard for task statistics. Implemented JWT-based authentication and ensured responsive, user-friendly UI using React.js, TailwindCSS, and TanStack Query."
 
-Currently, two official plugins are available:
+Key Points:
+Frontend:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Built with React.js, integrated REST APIs using TanStack Query.
+Created a dashboard to visualize task statistics (e.g., total tasks, completion percentages, time calculations).
+Used TailwindCSS/ShadCN UI for a professional and responsive design.
+Backend:
+
+Designed RESTful APIs using Node.js and Express.js.
+Implemented JWT-based user authentication.
+Used MongoDB with Mongoose for efficient data modeling and aggregation pipelines.
+Features:
+
+Task filtering and sorting (by priority, status, and timestamps).
+Dynamic time calculations (lapsed time, balance estimated time, average completion time).

@@ -33,7 +33,7 @@ const Navbar = () => {
                         Task Management System
                     </h1>
                 </div>
-
+r
                 {/* Navigation Links */}
                 <div className="flex items-center space-x-8">
                     <ul className="hidden md:flex items-center space-x-6 font-medium ">
@@ -97,13 +97,13 @@ const Navbar = () => {
                                         <AvatarFallback>CN</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                            <h4 className="font-semibold text-gray-900"> {userLogin.user.fullName }</h4>
-                                            <p className="text-sm text-gray-500"> {userLogin.user.email} </p>
+                                            <h4 className="font-semibold "> {userLogin.user.fullName }</h4>
+                                            <p className="text-sm "> {userLogin.user.email} </p>
                                     </div>
                                 </div>
                                 <hr className="my-2" />
                                 <div className="flex flex-col space-y-2">
-                                    <Button onClick= {() =>  navigate('/dashboard')} variant="link" className="flex items-center text-xl w-full text-gray-700 hover:text-purple-600">
+                                    <Button onClick= {() =>  navigate('/dashboard')} variant="link" className="flex items-center text-xl w-full ">
                                         <User2 className="w-6 h-6 mr-3" /> Dashboard
                                     </Button>
                                     

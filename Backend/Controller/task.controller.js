@@ -2,16 +2,15 @@ import { Task } from "../models/task.js";
 
 export const createTask = async (req, res) => {
     try {
-        const { taskName, startTime, endTime, priority } = req.body;
+        const { taskName, startTime, endTime, priority, status } = req.body;
 
         // Validate input
-        if (!taskName || !startTime || !endTime || !priority) {
+        if (!taskName || !startTime || !endTime || !priority || !status) {
             return res.status(400).json({
                 message: "Insufficient data. All fields are required.",
                 success: false,
             });
         }
-        console.log(req.id);
 
         const created_By = req.id;
 
@@ -22,8 +21,6 @@ export const createTask = async (req, res) => {
                 success: false,
             });
         }
-
-        console.log("I")
         // Creating the task
         const task = await Task.create({
             taskName,
@@ -31,6 +28,7 @@ export const createTask = async (req, res) => {
             endTime,
             priority,
             created_By,
+            status,
         });
 
         return res.status(201).json({
@@ -50,7 +48,7 @@ export const createTask = async (req, res) => {
 // Editing a task
 export const editTask = async (req, res) => {
     try {
-        const { taskId, taskName, startTime, endTime, priority } = req.body;
+        const { taskId, taskName, startTime, endTime, priority, status } = req.body;
         const userId = req.id; // User ID from isAuthenticated middleware
 
         // Validate taskId
@@ -85,6 +83,7 @@ export const editTask = async (req, res) => {
         if (startTime) task.startTime = startTime;
         if (endTime) task.endTime = endTime;
         if (priority) task.priority = priority;
+        if (status) task.status = status;
 
         // Save the updated task
         await task.save();
@@ -102,3 +101,34 @@ export const editTask = async (req, res) => {
         });
     }
 };
+
+
+export const deleteTask = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Task id not found"
+            });
+        }
+        const resposne = await Task.deleteOne({ _id: id });
+
+        if (resposne.deletedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Task Not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Task Deleted successfully"
+        })
+
+
+
+    } catch (error) {
+        console.log(error);
+    }
+}

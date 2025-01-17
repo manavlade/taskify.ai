@@ -15,15 +15,20 @@ const taskSchema = new mongoose.Schema(
             required: true,
         },
         priority: {
-            type: String, 
+            type: Number, 
             required: true,
-            enum: ["Low", "Medium", "High"], 
+            enum: [1,2,3,4,5], 
         },
         created_By: {
             type: mongoose.Schema.Types.ObjectId, // Reference to the User model
             ref: "User", // Name of the User model
             required: true,
         },
+        status: {
+            type: String,
+            required: true,
+            enum: ["pending", "finished"]
+        }
     },
     { timestamps: true }
 );
