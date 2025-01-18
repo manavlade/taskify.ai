@@ -1,6 +1,6 @@
-import { Task } from "../models/task";
+import { Task } from "../models/task.js";
 
-export const getDashboardData = async () => {
+export const getDashboardData = async (req,res) => {
     try {
 
         const currentTime = new Date();

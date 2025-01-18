@@ -29,7 +29,6 @@ const LoginForm = () => {
         setIsLoading(true);
         try {
             const response = await Login(data.email, data.password);
-            console.log(response);
 
             alert(response.message);
 

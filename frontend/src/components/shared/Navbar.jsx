@@ -12,17 +12,36 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from '../theme-provider';
-import { useQuery } from '@tanstack/react-query';
-import { GetUserById } from '@/api/Auth';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { GetUserById, Logout } from '@/api/Auth';
 
 const Navbar = () => {
     const { setTheme } = useTheme()
     const navigate = useNavigate();
+    const queryCLient = useQueryClient();
 
     const { data: userLogin } = useQuery({
         queryKey: ["user"],
         queryFn: GetUserById,
-    })
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const logoutMutation = useMutation({
+        mutationFn: Logout,
+        onSuccess: () => {
+            queryCLient.invalidateQueries(["user"])
+            alert("Logout Successfull");
+            navigate('/login')
+        },
+        onError: (error) => {
+            console.log(error.message);
+            alert("Logout failed. Please try again.");
+        },
+    });
+
+    const handleLogout = () => {
+        logoutMutation.mutate();
+    }
     
     return (
         <div className=" shadow-lg py-2">
@@ -107,7 +126,10 @@ r
                                         <User2 className="w-6 h-6 mr-3" /> Dashboard
                                     </Button>
                                     
-                                    <Button variant="link" className="flex items-center text-xl w-full text-red-600 hover:text-red-700">
+                                    <Button 
+                                    onClick = {handleLogout}
+                                    variant="link"
+                                     className="flex items-center text-xl w-full text-red-600 hover:text-red-700">
                                         <LogOut className="w-6 h-6 mr-3" /> Logout
                                     </Button>
                                 </div>

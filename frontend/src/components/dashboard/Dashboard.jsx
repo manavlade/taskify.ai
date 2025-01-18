@@ -5,14 +5,12 @@ import { Badge } from "../ui/badge";
 
 
 const Dashboard = () => {
-    const { data: userDetails, isError, isFetching, error } = useQuery({
+    const { data: userDetails, isError, isLoading, error } = useQuery({
         queryKey: ["userData"],
         queryFn: GetUserById,
     })
 
-    console.log(userDetails);
-
-    if (isFetching) return <p> Fetching Data...</p>
+    if(isLoading) return <p>Loading ...</p>
 
     if (isError) return <p> Error: {error.message || "something went wrong"} </p>
 

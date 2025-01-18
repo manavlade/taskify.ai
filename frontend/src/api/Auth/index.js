@@ -39,7 +39,7 @@ export const Login = async (email, password) => {
 
 export const Logout = async () => {
     try {
-        const response = await axiousInstance.post('/logout');
+        const response = await axiousInstance.get('/logout');
         localStorage.removeItem('token');
         return response.data;
     }
