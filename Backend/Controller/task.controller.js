@@ -132,3 +132,45 @@ export const deleteTask = async (req, res) => {
         console.log(error);
     }
 }
+
+export const getFilteredAndSortedTasks = async (req, res) => {
+    try {
+
+        const { priority, status, sortBy, order } = req.query;
+
+        const pipeline = [];
+
+        if (priority) {
+            pipeline.push({
+                $match: { priority: Number(priority) },
+            });
+        }
+
+        if (status) {
+            pipeline.push({
+                $match: { status },
+            })
+        }
+
+        if (sortBy) {
+            const sortOrder = order === "desc" ? -1 : 1;
+            pipeline.push({
+                $match: { [sortBy]: sortOrder }
+            })
+        }
+
+        const tasks = await Task.aggregate(pipeline);
+
+        return res.status(200).json({
+            success: true,
+            tasks,
+        });
+
+    } catch (error) {
+        console.error("Error fetching filtered and sorted tasks:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error. Please try again later.",
+        });
+    }
+}
