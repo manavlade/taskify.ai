@@ -2,7 +2,7 @@ import { axiousInstance } from "../axiousInstance";
 
 export const Register = async (fullName, email, password) => {
     try {
-        const response = await axiousInstance.post("/register", {
+        const response = await axiousInstance.post("/user/register", {
             fullName,
             email,
             password,
@@ -19,7 +19,7 @@ export const Register = async (fullName, email, password) => {
 
 export const Login = async (email, password) => {
     try {
-        const response = await axiousInstance.post("/login", {
+        const response = await axiousInstance.post("/user/login", {
             email,
             password,
         });
@@ -39,7 +39,7 @@ export const Login = async (email, password) => {
 
 export const Logout = async () => {
     try {
-        const response = await axiousInstance.get('/logout');
+        const response = await axiousInstance.get('/user/logout');
         localStorage.removeItem('token');
         return response.data;
     }
@@ -54,7 +54,7 @@ export const Logout = async () => {
 export const GetUserById = async () => {
     try {
 
-        const response = await axiousInstance.get("/");
+        const response = await axiousInstance.get("/user/");
         return response.data;
 
     } catch (error) {

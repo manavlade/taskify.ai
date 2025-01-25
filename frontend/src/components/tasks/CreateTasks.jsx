@@ -1,141 +1,226 @@
-import React, { useState } from 'react';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
-import { Select, SelectContent, SelectTrigger, SelectItem } from '../ui/select';
-import Navbar from '../shared/Navbar';
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { z } from "zod";
+import { Plus, Workflow } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CreateTask } from "@/api/tasks";
+import { Separator } from "@/components/ui/separator";
+import { useMutation } from "@tanstack/react-query";
+
+// Zod Schema for Validation
+const CreateTaskSchema = z.object({
+    taskName: z.string().min(3, "Task name must be at least 3 letters long"),
+    startDate: z.string(),
+    endDate: z.string(),
+    startTime: z.string(),
+    endTime: z.string(),
+    description: z.string().optional(),
+    priority: z.number().min(1).max(5, "Priority must be between 1 and 5"),
+    status: z.enum(["To-Do", "pending", "finished"]),
+});
 
 const CreateTasks = () => {
-    // const navigate = useNavigate();
-    // const [taskName, setTaskName] = useState('');
-    // const [startTime, setStartTime] = useState('');
-    // const [endTime, setEndTime] = useState('');
-    // const [priority, setPriority] = useState('');
+    const [showDescription, setShowDescription] = useState(false); // Description toggle
 
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        reset,
+    } = useForm({
+        resolver: zodResolver(CreateTaskSchema),
+    });
+    const mutation = useMutation({
+        mutationFn: (data) => CreateTask(
+            data.taskName,
+            data.startTime,
+            data.endTime,
+            data.priority,
+            data.status,
+            data.description,
+            data.startDate,
+            data.endDate
+        ),
+        onSuccess: () => {
+            console.log("Task created successfully!");
 
-    // const handleSubmit = async (e) => {
-    //     e.preventDefault();
-    //     const url = `${USER_API_END_POINT_TASK}/createTask`
+            alert("Task Created successfully")
+            reset(); // Reset the form
+        },
+        onError: (error) => {
+            console.error("Failed to create task:", error);
+            alert("Task Creation failed");
+        },
+    });
 
-    //     const token = sessionStorage.getItem("token");
+    const onSubmit = (data) => {
+        mutation.mutate(data); // Pass form data to the mutation
+    };
 
-    //     if(!token){
-    //         alert("User is not authenticated!");
-    //         navigate('/login');
-    //         return;
-    //     }
-
+    // const onSubmit = async (data) => {
     //     try {
-
-    //         const response = await fetch(url, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': "application/json",
-    //             },
-    //             withCredentials: true,
-    //             body: JSON.stringify({
-    //                 taskName,
-    //                 startTime,
-    //                 endTime,
-    //                 priority,
-    //             })
-    //         })
-    //         console.log("Task Data", response);
-
-    //         if (!response.ok) {
-    //             const errorData = await response.json();
-    //             console.error("Error Data:", errorData);
-    //             alert(`Login failed: ${errorData.message}`);
-    //             return;
-    //         }
-
-    //         const data = await response.json();
-    //         console.log(data);
-
+    //         await CreateTask(
+    //             data.taskName,
+    //             data.startTime,
+    //             data.endTime,
+    //             data.priority,
+    //             data.status,
+    //             data.description,
+    //             data.startDate,
+    //             data.endDate
+    //         );
+    //         alert("Task created successfully!");
+    //         reset(); 
     //     } catch (error) {
-    //         console.error("Error during login:", error);
-    //         alert("An error occurred while logging in. Please try again later.");
+    //         alert(error.message || "Failed to create task");
     //     }
     // };
 
     return (
-        <>
-            <div>
-                <Navbar />
-                <div className="max-w-md lg:mt-20 mx-auto p-4  shadow-md rounded-md">
-                    <h1 className="text-2xl  font-semibold mb-4">Create Task</h1>
-                    {/* {message && (
-                        <Alert variant={isSuccess ? 'success' : 'error'} className="mb-4">
-                            {message}
-                        </Alert>
-                    )} */}
-                    <form >
+        <div>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-2 ">
+                        <Plus /> New Task
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="max-w-3xl p-6">
+                    {/* Header */}
+                    <AlertDialogHeader className="text-center">
+                        <AlertDialogTitle>
+                            <div className="flex justify-center items-center gap-3 text-2xl font-bold">
+                                CREATE TASK <Workflow className="" />
+                            </div>
+                        </AlertDialogTitle>
+                        <Separator className="mt-3" />
+                    </AlertDialogHeader>
+
+                    {/* Form */}
+                    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
                         {/* Task Name */}
-                        <div className="mb-4">
-                            <label htmlFor="taskName" className="block font-medium">
+                        <div>
+                            <Label htmlFor="taskName" className="font-black text-sm">
                                 Task Name
-                            </label>
+                            </Label>
                             <Input
                                 id="taskName"
                                 type="text"
-                                required
                                 placeholder="Enter task name"
+                                className="w-full"
+                                {...register("taskName")}
                             />
+                            {errors.taskName && <p className="text-red-500 text-sm">{errors.taskName.message}</p>}
                         </div>
 
-                        {/* Start Time */}
-                        <div className="mb-4">
-                            <label htmlFor="startTime" className="block font-medium">
-                                Start Time
-                            </label>
-                            <Input
-                                id="startTime"
-                                type="datetime-local"
-                                required
-                            />
-                        </div>
-
-                        {/* End Time */}
-                        <div className="mb-4">
-                            <label htmlFor="endTime" className="block  font-medium">
-                                End Time
-                            </label>
-                            <Input
-                                id="endTime"
-                                type="datetime-local"
-                                required
-                            />
-                        </div>
-
-                        {/* Priority */}
-                        <div className="mb-4">
-                            <label htmlFor="priority" className="block font-medium">
-                                Priority
-                            </label>
-                            <Select
-                                required
-                            >
-                                <SelectTrigger placeholder="Select Priority">
-                                    
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Low">Low</SelectItem>
-                                    <SelectItem value="Medium">Medium</SelectItem>
-                                    <SelectItem value="High">High</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Submit Button */}
+                        {/* Toggle Description */}
                         <div>
-                            <Button type="submit" className="w-full">
-                                Create Task
-                            </Button>
+                            <button
+                                type="button"
+                                className="bg-gray-100 text-sm text-gray-800 px-3 py-1 rounded-md hover:bg-gray-200"
+                                onClick={() => setShowDescription(!showDescription)}
+                            >
+                                {showDescription ? "Hide Description" : "Add Description"}
+                            </button>
+                            {showDescription && (
+                                <div className="mt-4">
+                                    <Label htmlFor="description" className="font-black text-sm">
+                                        Task Description
+                                    </Label>
+                                    <Input
+                                        id="description"
+                                        type="text"
+                                        placeholder="Enter task description"
+                                        className="w-full"
+                                        {...register("description")}
+                                    />
+                                </div>
+                            )}
                         </div>
+
+                        {/* Date & Time */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <Label htmlFor="startDate" className="font-bold text-sm">
+                                    Start Date
+                                </Label>
+                                <Input id="startDate" type="date" {...register("startDate")} />
+                            </div>
+                            <div>
+                                <Label htmlFor="startTime" className="font-bold text-sm">
+                                    Start Time
+                                </Label>
+                                <Input id="startTime" type="time" {...register("startTime")} />
+                            </div>
+                            <div>
+                                <Label htmlFor="endDate" className="font-bold text-sm">
+                                    End Date
+                                </Label>
+                                <Input id="endDate" type="date" {...register("endDate")} />
+                            </div>
+                            <div>
+                                <Label htmlFor="endTime" className="font-bold text-sm">
+                                    End Time
+                                </Label>
+                                <Input id="endTime" type="time" {...register("endTime")} />
+                            </div>
+                        </div>
+
+                        {/* Priority & Status */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <Label htmlFor="priority" className="font-bold text-sm">
+                                    Priority
+                                </Label>
+                                <select
+                                    id="priority"
+                                    className="w-full p-2 border rounded-md mt-2"
+                                    {...register("priority", { valueAsNumber: true })}
+                                >
+                                    {[1, 2, 3, 4, 5].map((p) => (
+                                        <option key={p} value={p}>
+                                            {p}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <Label htmlFor="status" className="font-bold text-sm">
+                                    Status
+                                </Label>
+                                <select
+                                    id="status"
+                                    className="w-full p-2 border rounded-md mt-2"
+                                    {...register("status")} // Correctly registering the "status" field
+                                >
+                                    {["To-Do", "pending", "finished"].map((s) => (
+                                        <option key={s} value={s}>
+                                            {s}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                        </div>
+
+                        {/* Submit */}
+                        <Button type="submit" className="w-full ">
+                            Create Task
+                        </Button>
                     </form>
-                </div>
-            </div>
-        </>
-    )
-}
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
+    );
+};
 
 export default CreateTasks;

@@ -2,7 +2,7 @@ import React from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
-import { LogOut, Settings, User2 } from 'lucide-react';
+import { LogOut, User2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Moon, Sun } from "lucide-react"
 import {
@@ -15,16 +15,18 @@ import { useTheme } from '../theme-provider';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { GetUserById, Logout } from '@/api/Auth';
 
+export const useUserLogin = () => {
+    return useQuery({
+        queryKey: ["user"],
+        queryFn: GetUserById,
+        staleTime: 5 * 60 * 1000, 
+    });
+};
 const Navbar = () => {
     const { setTheme } = useTheme()
     const navigate = useNavigate();
     const queryCLient = useQueryClient();
-
-    const { data: userLogin } = useQuery({
-        queryKey: ["user"],
-        queryFn: GetUserById,
-        staleTime: 5 * 60 * 1000,
-    });
+    const { data: userLogin } = useUserLogin();
 
     const logoutMutation = useMutation({
         mutationFn: Logout,
@@ -45,27 +47,16 @@ const Navbar = () => {
     
     return (
         <div className=" shadow-lg py-2">
-            <div className="flex items-center justify-between mx-auto max-w-7xl h-16 px-4">
+            <div className="flex items-center justify-between mx-auto  h-16 px-4">
                 {/* Logo */}
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight cursor-pointer" onClick={() => navigate('/')}>
-                        Task Management System
+                    <h1 className=" lg:text-3xl  font-bold tracking-tight cursor-pointer" onClick={() => navigate('/')}>
+                        Efficio
                     </h1>
                 </div>
-r
+
                 {/* Navigation Links */}
                 <div className="flex items-center space-x-8">
-                    <ul className="hidden md:flex items-center space-x-6 font-medium ">
-                        <li className=" cursor-pointer transition-colors duration-200">
-                            <Link to="/">Home</Link>
-                        </li>
-                        <li className=" cursor-pointer transition-colors duration-200">
-                            <Link to="/createTasks">Create Tasks</Link>
-                        </li>
-                        <li className=" cursor-pointer transition-colors duration-200">
-                            <Link to="/dashboard">Dashboard</Link>
-                        </li>
-                    </ul>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="icon">

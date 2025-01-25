@@ -6,14 +6,27 @@ const taskSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        startTime: {
+        description: {
+            type: String,
+            default: "",
+        },
+        startDate: {
             type: Date, 
+            required: true,
+        },
+        endDate: {
+            type: Date, 
+            required: true,
+        },
+        startTime: {
+            type: Date,
             required: true,
         },
         endTime: {
-            type: Date, 
+            type: Date,
             required: true,
         },
+
         priority: {
             type: Number, 
             required: true,
@@ -27,7 +40,8 @@ const taskSchema = new mongoose.Schema(
         status: {
             type: String,
             required: true,
-            enum: ["pending", "finished"]
+            enum: ["pending", "finished", "To-Do"],
+            default: "pending"
         }
     },
     { timestamps: true }

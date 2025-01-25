@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.USER_API_END_POINT_USER ||  "http://localhost:8000/api/v1/user";
+const baseURL = import.meta.env.USER_API_END_POINT_USER ||  "http://localhost:8000/api/v1";
 
 export const axiousInstance = axios.create({
     baseURL,

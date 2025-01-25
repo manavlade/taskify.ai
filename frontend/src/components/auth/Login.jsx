@@ -7,6 +7,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Login } from "@/api/Auth";
+import loginImage from "../../assets/login 1.png"
+import { Separator } from "../ui/separator";
+import { cn } from "@/lib/utils";
+import Navbar from "../shared/Navbar";
+import { useTheme } from "../theme-provider";
 
 const logInSchema = z.object({
     email: z.string().email("Please enter proper email"),
@@ -15,6 +20,7 @@ const logInSchema = z.object({
 
 const LoginForm = () => {
     const navigate = useNavigate();
+    const theme = useTheme();
     const [isLoading, setIsLoading] = useState(false);
 
     const {
@@ -42,67 +48,113 @@ const LoginForm = () => {
         }
     }
     return (
-        <div>
+        <div className="h-screen flex flex-col">
+            <Navbar />
+            <div className="flex flex-1 flex-col md:flex-row w-full">
+                {/* Right Section: Login Form */}
+                <div className="w-full md:w-1/3 flex flex-col items-center justify-center px-6 py-12">
+                    <div className="w-full max-w-md">
+                        <h1 className="text-2xl font-bold mb-4 text-center">
+                            Log in to your account
+                        </h1>
+                        <p className="text-sm text-center mb-6">
+                            Welcome back! Select a method to log in:
+                        </p>
+                        <Separator className="my-4" />
 
-            <div className="flex items-center justify-center pt-16">
-                <div className="w-full max-w-md p-6 rounded-lg shadow-md">
-                    <h2 className="text-2xl font-semibold text-center  mb-6">
-                        Login to Your Account
-                    </h2>
+                        {/* Login Form */}
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                            {/* Email Field */}
+                            <div className="mb-4">
+                                <Label htmlFor="email" className="mb-2 block text-sm font-medium">
+                                    Email id
+                                </Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="Enter Email address"
+                                    {...register("email")}
+                                    className={cn(
+                                        "w-full",
+                                        errors.email ? "border-red-500" : "border-gray-300"
+                                    )}
+                                />
+                                {errors.email && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {errors.email.message}
+                                    </p>
+                                )}
+                            </div>
 
-                    <form onSubmit={handleSubmit(onSubmit)} >
-                        {/* Email Field */}
-                        <div className="mb-4">
-                            <Label className="block mb-2 text-sm font-medium ">
-                                Enter Your Email Address
-                            </Label>
-                            <Input
-                                type="email"
-                                placeholder="Enter your email"
-                                {...register("email")}
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            />
-                            {errors.email && <p className=" text-red-500 text-sm" > {errors.email.message} </p>}
-                        </div>
+                            {/* Password Field */}
+                            <div className="mb-4">
+                                <Label htmlFor="password" className="mb-2 block text-sm font-medium">
+                                    Password
+                                </Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="Create Password"
+                                    {...register("password")}
+                                    className={cn(
+                                        "w-full",
+                                        errors.password ? "border-red-500" : "border-gray-300"
+                                    )}
+                                />
+                                {errors.password && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {errors.password.message}
+                                    </p>
+                                )}
+                            </div>
 
-                        {/* Password Field */}
-                        <div className="mb-6">
-                            <Label className="block mb-2 text-sm font-medium ">
-                                Enter Your Password
-                            </Label>
-                            <Input
-                                type="password"
-                                placeholder="Enter your password"
-                                {...register("password")}
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            />
-                            {errors.password && <p className=" text-red-500 text-sm" > {errors.password.message} </p>}
-                        </div>
+                            {/* Forgot Password Link */}
+                            <div className="mb-6 text-right">
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-sm text-blue-500 hover:underline"
+                                >
+                                    Forgot password?
+                                </Link>
+                            </div>
 
-                        {/* Login Button */}
-                        <div className="mb-4">
+                            {/* Login Button */}
                             <Button
                                 type="submit"
+                                className="w-full bg-blue-600 text-white hover:bg-blue-700"
                                 disabled={isLoading}
-                                className="w-full py-2 rounded-lg transition duration-300"
                             >
-                                {isLoading ? "Logining you in...." : "Login"}
+                                {isLoading ? "Logging in..." : "Log In"}
                             </Button>
-                        </div>
+                        </form>
 
                         {/* Sign Up Link */}
-                        <p className="text-sm text-center text-gray-600">
+                        <p className="text-sm text-center mt-6">
                             Don't have an account?{" "}
-                            <Link to='/signUp' >
-                                <span className="text-black font-semibold hover:underline cursor-pointer">
-                                    Sign Up Now
-                                </span>
+                            <Link
+                                to="/signUp"
+                                className="text-blue-600 font-semibold hover:underline"
+                            >
+                                SignUp
                             </Link>
                         </p>
-                    </form>
+                    </div>
+                </div>
+
+                {/* Left Section: Image */}
+                <div
+                    className={`hidden md:flex w-full md:w-full items-center justify-center ${theme === "light" ? "bg-black" : "bg-white"
+                        }`}
+                >
+                    <img
+                        src={loginImage}
+                        alt="Login Illustration"
+                        className="max-w-full h-auto"
+                    />
                 </div>
             </div>
         </div>
+
     );
 };
 

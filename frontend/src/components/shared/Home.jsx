@@ -1,88 +1,58 @@
 import { Badge } from "react-bootstrap";
 import { Button } from "../ui/button";
+import { motion } from "framer-motion";
 import Navbar from "./Navbar";
+import TaskManagementBenefits from "./benefits";
+import hero from "../../assets/hero.mp4"
 
 const Home = () => {
-    return (
-      <>
-      <div>
-        <Navbar/>
-        <div className="min-h-screen py-8">
-          <div className="container mx-auto px-4">
-            <h1 className="text-4xl font-bold  mb-8">Task Management System</h1>
-            
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              <div className=" p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Create New Task</h2>
-                <p className=" mb-4">Add a new task with details like name, deadline and priority</p>
-                  <Button className="w-full" variant="outline" onClick={() => navigate('/create-task')}>
-                  Create Task
-                </Button>
-              </div>
+  return (
+    <>
+      <Navbar />
+      <div className="flex flex-col items-center justify-center px-10">
+        <div className="flex flex-col md:flex-row items-center gap-12">
+          {/* Left Section */}
+          <motion.div
+            className="flex-1 space-y-6"
+            initial={{ opacity: 0, x: -100 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+           
+            <h1 className="text-4xl font-bold leading-tight text-gray-800">
+              Empower Your Productivity with Our Task Management App
+            </h1>
+            <p className="text-gray-600 text-lg">
+              Our Task Management System simplifies your workflow, helping you
+              stay organized and focused. Easily create, edit, and track your
+              tasks all in one place.
+            </p>
+            <Button className="bg-blue-600 text-white px-6 py-3 rounded-lg">
+              Get Started
+            </Button>
+          </motion.div>
 
-              <div className="p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold  mb-4">View Tasks</h2>
-                <p className=" mb-4">See all your tasks and track their progress</p>
-                <Button className="w-full" variant="outline" onClick={() => navigate('/tasks')}>
-                  View All Tasks
-                </Button>
-              </div>
+          {/* Right Section */}
 
-              <div className=" p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold  mb-4">Task Analytics</h2>
-                <p className=" mb-4">Get insights about your task completion and productivity</p>
-                <Button className="w-full" variant="outline" onClick={() => navigate('/analytics')}>
-                  View Analytics
-                </Button>
-              </div>
-            </div>
-
-            {/* Recent Tasks Section */}
-            <div className=" rounded-lg shadow-md p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold ">Recent Tasks</h2>
-                <Button variant="ghost" onClick={() => navigate('/tasks')}>View All</Button>
-              </div>
-              
-              <div className="space-y-4">
-                {/* Sample Task Items - Replace with actual data */}
-                <div className="flex items-center justify-between p-4  rounded-lg">
-                  <div>
-                    <h3 className="font-medium ">Project Planning</h3>
-                    <p className="text-sm ">Due: Tomorrow at 5:00 PM</p>
-                  </div>
-                    <Button>
-                      Low Priority
-                    </Button>
-                </div>
-
-                <div className="flex items-center justify-between p-4  rounded-lg">
-                  <div>
-                    <h3 className="font-medium ">Client Meeting</h3>
-                    <p className="text-sm ">Due: Today at 2:00 PM</p>
-                  </div>
-                    <Button>
-                      Low Priority
-                    </Button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-lg">
-                  <div>
-                    <h3 className="font-medium ">Documentation</h3>
-                    <p className="text-sm ">Due: Next Week</p>
-                  </div>
-                  <Button>
-                    Low Priority
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <motion.div
+            className="flex-1 flex justify-center items-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1 }}
+          >
+            <video
+              src={hero}
+              autoPlay
+              loop
+              muted
+              className="w-3/2 h-2/3"
+            />
+          </motion.div>
         </div>
       </div>
-      </>
-    )
-}
+      <TaskManagementBenefits />
+    </>
+  );
+};
 
 export default Home;

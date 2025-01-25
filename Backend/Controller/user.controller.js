@@ -23,7 +23,6 @@ export const register = async (req, res) => {
             });
         };
 
-
         const hashedPassword = await bcrypt.hash(password, 10);
 
 
@@ -75,8 +74,6 @@ export const login = async (req, res) => {
             });
         }
 
-        console.log("User authenticated:", email);
-
         const tokenData = {
             userId: user._id,
         };
@@ -92,7 +89,6 @@ export const login = async (req, res) => {
             password: user.password,
         };
 
-        console.log("Token generated for user:", email);
 
         return res
             .status(200)

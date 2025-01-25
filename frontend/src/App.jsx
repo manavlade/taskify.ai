@@ -3,13 +3,13 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import SignUP from './components/auth/SignUp';
 import Home from './components/shared/Home';
 import CreateTasks from './components/tasks/CreateTasks';
-import EditTasks from './components/tasks/EditTasks';
 import Dashboard from './components/dashboard/Dashboard';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './components/theme-provider';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import LoginForm from './components/auth/Login';
-
+import { ToastContainer } from 'react-toastify';
+import EditTasks from './components/tasks/EditTasks';
 
 const queryClient = new QueryClient();
 
@@ -33,6 +33,10 @@ function App() {
       element: <CreateTasks />
     },
     {
+      path: '/createTasks/:id',
+      element: <CreateTasks />
+    },
+    {
       path: '/editTasks',
       element: <EditTasks />
     },
@@ -52,6 +56,7 @@ function App() {
             <RouterProvider router={appRouter} />
           </QueryClientProvider>
         </ThemeProvider>
+        <ToastContainer/>
       </div>
 
     </>

@@ -1,34 +1,54 @@
 import { Task } from "../models/task.js";
 
+
+// Helper function to convert "hh:mm" to a Date object
+const convertTimeToDate = (time, date) => {
+    const [hours, minutes] = time.split(":"); // Extract hours and minutes
+    const newDate = new Date(date); // Use the provided date
+    newDate.setHours(hours, minutes, 0, 0); // Set time
+    return newDate;
+};
+
 export const createTask = async (req, res) => {
     try {
-        const { taskName, startTime, endTime, priority, status } = req.body;
+        const { taskName, startTime, endTime, priority, status, description, startDate, endDate } = req.body;
+
 
         // Validate input
-        if (!taskName || !startTime || !endTime || !priority || !status) {
+        if (!taskName || !startTime || !endTime || !priority || !status || !startDate || !endDate) {
             return res.status(400).json({
                 message: "Insufficient data. All fields are required.",
                 success: false,
             });
         }
-
-        const created_By = req.id;
-
         // Validate time range
-        if (new Date(startTime) >= new Date(endTime)) {
+        if (new Date(startDate) >= new Date(endDate)) {
             return res.status(400).json({
-                message: "Start time must be earlier than end time.",
+                message: "Start date must be earlier than end date.",
                 success: false,
             });
         }
-        // Creating the task
+
+        // Convert startTime and endTime to Date objects
+        const startTimeDate = convertTimeToDate(startTime, startDate);
+        const endTimeDate = convertTimeToDate(endTime, startDate);
+
+        // Validate time (ensure startTime is before endTime)
+      
+
+        const created_By = req.id;
+
+        // Create the task
         const task = await Task.create({
             taskName,
-            startTime,
-            endTime,
+            startTime: startTimeDate,
+            endTime: endTimeDate,
             priority,
-            created_By,
             status,
+            description,
+            startDate,
+            endDate,
+            created_By,
         });
 
         return res.status(201).json({
@@ -46,9 +66,10 @@ export const createTask = async (req, res) => {
 };
 
 // Editing a task
+
 export const editTask = async (req, res) => {
     try {
-        const { taskId, taskName, startTime, endTime, priority, status } = req.body;
+        const { taskId, taskName, startTime, endTime, priority, status, description, startDate, endDate } = req.body;
         const userId = req.id; // User ID from isAuthenticated middleware
 
         // Validate taskId
@@ -58,7 +79,6 @@ export const editTask = async (req, res) => {
                 success: false,
             });
         }
-
 
         // Find the task and ensure it belongs to the logged-in user
         const task = await Task.findById({ _id: taskId, created_By: userId });
@@ -84,6 +104,9 @@ export const editTask = async (req, res) => {
         if (endTime) task.endTime = endTime;
         if (priority) task.priority = priority;
         if (status) task.status = status;
+        if(description) task.description = description;
+        if(startDate) task.startDate = startDate;
+        if(endDate) task.endDate = endDate;
 
         // Save the updated task
         await task.save();
