@@ -1,5 +1,5 @@
 import { User } from "../models/user.js"
-import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken";
 import { Task } from "../models/task.js";
 
@@ -43,74 +43,79 @@ export const register = async (req, res) => {
 
 }
 
+
 export const login = async (req, res) => {
     try {
+
         const { email, password } = req.body;
 
         if (!email || !password) {
-            console.log("Missing email or password");
             return res.status(400).json({
                 message: "Insufficient data",
                 success: false,
             });
         }
 
+
         let user = await User.findOne({ email });
 
+
         if (!user) {
-            console.log("User not found for email:", email);
             return res.status(400).json({
-                message: "Incorrect email or password",
+                message: "User not found",
                 success: false,
-            });
+            })
         }
 
         const isHassedMatch = await bcrypt.compare(password, user.password);
+
         if (!isHassedMatch) {
-            console.log("Incorrect password for email:", email);
             return res.status(400).json({
                 message: "Incorrect email or password",
                 success: false,
-            });
+            })
         }
+
 
         const tokenData = {
             userId: user._id,
-        };
+        }
+
+        //➡️ This creates a payload for the JWT (JSON Web Token).
+        //It includes the user's MongoDB _id, which uniquely identifies the user.
+
+
 
         const token = await jwt.sign(tokenData, process.env.SECRET_KEY, {
             expiresIn: "1d",
         });
 
         user = {
-            _id: user._id,
+            id: user._id,
             fullName: user.fullName,
             email: user.email,
-            password: user.password,
-        };
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        }
 
+        return res.status(200).cookie("token", token, {
+            maxAge: 1 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            sameSite: "strict",
+        }).json({
+            message: `Welcome back ${user.fullName}`,
+            success: true,
+            user,
+        })
 
-        return res
-            .status(200)
-            .cookie("token", token, {
-                maxAge: 1 * 24 * 60 * 60 * 1000,
-                httpOnly: true,
-                sameSite: "strict",
-            })
-            .json({
-                message: `Welcome back ${user.fullName}`,
-                success: true,
-                user,
-            });
     } catch (error) {
-        console.error("Login error:", error);
+        console.log(error);
         return res.status(500).json({
             message: "Server error",
             success: false,
-        });
+        })
     }
-};
-
+}
 
 export const logout = async (req, res) => {
     try {
@@ -125,7 +130,6 @@ export const logout = async (req, res) => {
 
 export const getUserById = async (req, res) => {
     try {
-        // Extract the user ID from req.id set by isAuthenticated middleware
         const id = req.id;
 
         if (!id) {
@@ -135,8 +139,7 @@ export const getUserById = async (req, res) => {
             });
         }
 
-        // Fetch the user and their tasks
-        const user = await User.findById(id).select("-password"); // Exclude the password
+        const user = await User.findById(id).select("-password");
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -144,7 +147,6 @@ export const getUserById = async (req, res) => {
             });
         }
 
-        // Fetch tasks created by the user
         const tasks = await Task.find({ created_By: id });
 
         return res.status(200).json({
@@ -156,7 +158,7 @@ export const getUserById = async (req, res) => {
                 createdAt: user.createdAt,
                 updatedAt: user.updatedAt,
             },
-            tasks, // All tasks created by the user
+            tasks,
         });
     } catch (error) {
         console.error("Error fetching user and tasks by ID:", error);

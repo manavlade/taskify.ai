@@ -2,46 +2,52 @@ import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema(
     {
-        taskName: {
+        name: {
             type: String,
-            required: true,
+            required: true
+        },
+        image: {
+            type: String
         },
         description: {
             type: String,
-            default: "",
+            required: true,
         },
         startDate: {
-            type: Date, 
+            type: Date,
             required: true,
         },
         endDate: {
-            type: Date, 
-            required: true,
-        },
-        startTime: {
             type: Date,
             required: true,
         },
-        endTime: {
-            type: Date,
-            required: true,
-        },
-
         priority: {
-            type: Number, 
+            type: String,
             required: true,
-            enum: [1,2,3,4,5], 
-        },
-        created_By: {
-            type: mongoose.Schema.Types.ObjectId, // Reference to the User model
-            ref: "User", // Name of the User model
-            required: true,
+            enum: ["low", "moderate", "high", "critical"],
+            default: "low"
         },
         status: {
             type: String,
             required: true,
-            enum: ["pending", "finished", "To-Do"],
-            default: "pending"
+            enum: ["To-Do", "In-Progress", "Completed"],
+            default: "To-Do"
+        },
+        estimatedTime: {
+            type: Number,
+            required: true,
+        },
+        actualTime: {
+            type: Number,
+            default: 0,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        },
+        created_by: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
         }
     },
     { timestamps: true }

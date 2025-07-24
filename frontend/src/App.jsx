@@ -10,6 +10,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import LoginForm from './components/auth/Login';
 import { ToastContainer } from 'react-toastify';
 import EditTasks from './components/tasks/EditTasks';
+import DashboardLayout from './components/dashboard/Layout';
 
 const queryClient = new QueryClient();
 
@@ -42,7 +43,11 @@ function App() {
     },
     {
       path: '/dashboard',
-      element: <Dashboard />
+      element: (
+        <DashboardLayout>
+          <Dashboard />
+        </DashboardLayout>
+      )
     }
 
   ]);
@@ -56,7 +61,7 @@ function App() {
             <RouterProvider router={appRouter} />
           </QueryClientProvider>
         </ThemeProvider>
-        <ToastContainer/>
+        <ToastContainer />
       </div>
 
     </>
