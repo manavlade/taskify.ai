@@ -1,4 +1,10 @@
 import { Task } from "../models/task.js";
+import { getGenAITaskEmbedding } from "./geminiAPI.controller.js";
+import { getTaskEmbedding } from "./openAIAPI.controller.js";
+
+// const isDuplicate = async (newEmbeddings) => {
+//     const tasks = await Task.find({}, {})
+// }
 
 export const createTask = async (req, res) => {
     try {
@@ -12,14 +18,17 @@ export const createTask = async (req, res) => {
             status,
             estimatedTime,
             actualTime,
+            comments
         } = req.body;
 
-        if (!name || !description || !startDate || !endDate || !priority || !status || !estimatedTime) {
+        if (!name || !description || !startDate || !endDate || !priority || !status || !estimatedTime || !comments) {
             return res.status(400).json({
                 message: "Insufficient data",
                 success: false,
             });
         }
+
+        const embedding = await getGenAITaskEmbedding(description);
 
         const task = await Task.create({
             name,
@@ -31,6 +40,8 @@ export const createTask = async (req, res) => {
             status,
             estimatedTime,
             actualTime,
+            embedding,
+            comments,
             created_by: req.id
         })
 
@@ -124,7 +135,7 @@ export const EditTask = async (req, res) => {
             runValidators: true
         });
 
-        if(!updatedTaskData){
+        if (!updatedTaskData) {
             return res.status(404).json({
                 message: `Task with ${id} not found`,
                 success: false
@@ -148,3 +159,5 @@ export const EditTask = async (req, res) => {
 
     }
 }
+
+
