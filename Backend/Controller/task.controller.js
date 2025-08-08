@@ -65,7 +65,7 @@ export const createTask = async (req, res) => {
 export const GetAllTask = async (req, res) => {
     try {
 
-        const tasks = await Task.find({ created_by: req.id });
+        const tasks = await Task.find({ created_by: req.id }).select("-embedding");
 
         return res.status(200).json({
             message: "Tasks fetched successfully",
@@ -88,7 +88,7 @@ export const GetTaskById = async (req, res) => {
 
         const id = req.params.id;
 
-        const taskById = await Task.findById(id);
+        const taskById = await Task.findById(id).select("-embedding");
 
         if (!taskById) {
             return res.status(404).json({
@@ -119,7 +119,7 @@ export const EditTask = async (req, res) => {
 
         const id = req.params.id;
 
-        const taskById = await Task.findById(id);
+        const taskById = await Task.findById(id).select("-embedding");
 
         if (!taskById) {
             return res.status(404).json({
@@ -160,4 +160,48 @@ export const EditTask = async (req, res) => {
     }
 }
 
+export const switchTaskStatus = async (req, res) => {
+    try {
+        const { taskId } = req.params;
+        const date = new Date();
 
+        if (!taskId) {
+            return res.status(400).json({
+                message: "Task ID is required",
+                success: false
+            })
+        }
+
+        const tasks = await Task.findById(taskId).select("-embedding");
+
+        if (!tasks) {
+            return res.status(404).json({
+                message: `Task with ${taskId} not found`,
+                success: false
+            })
+        }
+
+        if (tasks.completed) {
+            tasks.completed = false;
+            tasks.actualTime = tasks.endDate
+        } else {
+            tasks.completed = true;
+            tasks.actualTime = date;
+        }
+
+        await tasks.save();
+
+        return res.status(200).json({
+            message: `Task marked as ${tasks.completed ? "completed" : "incomplete"}`,
+            success: true,
+            tasks,
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: "Server error",
+            success: false,
+        })
+    }
+}

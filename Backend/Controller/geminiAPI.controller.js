@@ -74,3 +74,74 @@ export const getGenAISmartSearch = async ( req, res) => {
         })
     }
 }
+
+export const getGenAISuggestions = async (tasks, query) => {
+    try {
+        
+        const queryEmbedding = await getGenAITaskEmbedding(query);
+
+        const scoredTask = tasks.map(task => ({
+            ...task,
+            score: cosineSimilarity(task.embedding, queryEmbedding)
+        }))
+
+        const topTasks = scoredTask.sort((a,b) => b.score - a.score).slice(0,5);
+
+        const formattedTask = topTasks.map(
+            (t,i) => `${i+1}. ${t.name} ${t.priority} ${t.status} ${t.endDate}`
+        )
+
+        const messages = [
+            {
+                role: "system",
+                content: "You are a helpful AI assistant for task management.."
+            },
+            {
+                role: "user",
+                content: `Here are my tasks:\n${formattedTask}\n\n${query}`
+            },
+        ]
+
+        const response = await genAI.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: messages,
+            config: {
+                systemInstruction: "You are a helpful AI assistant for task management that answers questions about tasks as you have access to what tasks the user has created. Your name is ZapTask"
+            }
+        })
+
+        return response.text.trim();
+    } catch (error) {
+        console.log(error);
+        return error;
+    }
+}
+
+export const getGenAIAssistantReply = async (req, res) => {
+    try {
+
+        const {query} = req.body;
+
+        if(!query) {
+            return res.status(400).json({
+                message: "No query recieved",
+                success: false,
+            })
+        }
+
+        const tasks = await Task.find({ created_by: req.id });
+        
+        const response = await getGenAISuggestions(tasks, query);
+
+        return res.status(200).json({
+            message: "Task assistant reply fetched successfully",
+            success: true,
+            response
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: `${error}`,
+            success: false,
+        })
+    }
+}

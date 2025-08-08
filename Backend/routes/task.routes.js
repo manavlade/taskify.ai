@@ -1,5 +1,5 @@
 import express from "express";
-import { createTask, EditTask, GetAllTask, GetTaskById, } from "../Controller/task.controller.js";
+import { createTask, EditTask, GetAllTask, GetTaskById, switchTaskStatus, } from "../Controller/task.controller.js";
 import isAuthenticated from "../middleware/isAuthenticated.js";
 import { getSentimentAnalysis, GetSmartSearch, GetTaskAssistantReply } from "../Controller/openAIAPI.controller.js";
 import { getGenAISmartSearch } from "../Controller/geminiAPI.controller.js";
@@ -19,6 +19,8 @@ router.route('/smart-suggestion').post(isAuthenticated, GetTaskAssistantReply);
 router.route('/smart-search').post(isAuthenticated, getGenAISmartSearch);
 
 router.route('/sentiment-analysis').post(isAuthenticated, getSentimentAnalysis);
+
+router.route('/switch-task-status/:taskId').patch(isAuthenticated, switchTaskStatus);
 
 // router.route('/delete/:id').delete(isAuthenticated, deleteTask)
 

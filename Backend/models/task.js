@@ -30,7 +30,7 @@ const taskSchema = new mongoose.Schema(
         status: {
             type: String,
             required: true,
-            enum: ["To-Do", "In-Progress", "Completed"],
+            enum: ["To-Do", "In-Progress"],
             default: "To-Do"
         },
         comments: {
@@ -39,14 +39,17 @@ const taskSchema = new mongoose.Schema(
         },
         estimatedTime: {
             type: Number,
-            required: true,
         },
         actualTime: {
-            type: Number,
-            default: 0,
+            type: Date,
+            default: Date.now,
         },
         embedding: {
             type: [Number]
+        },
+        completed: {
+            type: Boolean,
+            default: false
         },
         createdAt: {
             type: Date,
