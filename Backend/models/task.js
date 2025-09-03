@@ -44,9 +44,9 @@ const taskSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
-        embedding: {
-            type: [Number]
-        },
+        // embedding: {
+        //     type: [Number]
+        // },
         completed: {
             type: Boolean,
             default: false
@@ -58,6 +58,10 @@ const taskSchema = new mongoose.Schema(
         created_by: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
+        },
+        vectorized: {
+            type: Boolean,
+            default: false
         }
     },
     { timestamps: true }

@@ -1,10 +1,19 @@
 import { Task } from "../models/task.js";
-import { getGenAITaskEmbedding } from "./geminiAPI.controller.js";
-import { getTaskEmbedding } from "./openAIAPI.controller.js";
+import { getGenAIDuplicateTaskDetection, getGenAITaskEmbedding } from "./geminiAPI.controller.js";
 
-// const isDuplicate = async (newEmbeddings) => {
-//     const tasks = await Task.find({}, {})
-// }
+import dotenv from "dotenv"
+import { Pinecone } from "@pinecone-database/pinecone";
+
+
+dotenv.config();
+
+const pinecone = new Pinecone({
+    apiKey: `${process.env.PINECONE_API_KEY}`,
+})
+
+const indexName = 'task'
+
+const index = pinecone.Index(indexName);
 
 export const createTask = async (req, res) => {
     try {
@@ -28,7 +37,14 @@ export const createTask = async (req, res) => {
             });
         }
 
-        const embedding = await getGenAITaskEmbedding(description);
+        // const duplicateTask = await getGenAIDuplicateTaskDetection(embedding);
+
+        // if (duplicateTask) {
+        //     return res.status(400).json({
+        //         message: "Duplicate task detected",
+        //         success: false,
+        //     });
+        // }
 
         const task = await Task.create({
             name,
@@ -40,10 +56,36 @@ export const createTask = async (req, res) => {
             status,
             estimatedTime,
             actualTime,
-            embedding,
             comments,
             created_by: req.id
         })
+
+        const text = `Name: ${name}\nDescription: ${description}\nStartDate: ${startDate}\nEndDate: ${endDate}\nPriority: ${priority}\nStatus: ${status}\nComments: ${comments}`;
+
+        const vectorEmbedding = await getGenAITaskEmbedding(text);
+
+        await index.upsert([
+            {
+                id: task._id.toString(),
+                values: vectorEmbedding,
+                metadata: {
+                    task_id: task._id.toString(),
+                    name,
+                    description,
+                    startDate,
+                    endDate,
+                    priority,
+                    status,
+                    estimatedTime,
+                    actualTime,
+                    comments,
+                    created_by: req.id
+                }
+            }
+        ])
+
+        task.vectorized = true;
+        await task.save();
 
         return res.status(200).json({
             message: "Task created successfully",
