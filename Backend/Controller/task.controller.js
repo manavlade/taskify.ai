@@ -37,15 +37,6 @@ export const createTask = async (req, res) => {
             });
         }
 
-        // const duplicateTask = await getGenAIDuplicateTaskDetection(embedding);
-
-        // if (duplicateTask) {
-        //     return res.status(400).json({
-        //         message: "Duplicate task detected",
-        //         success: false,
-        //     });
-        // }
-
         const task = await Task.create({
             name,
             image,
@@ -63,6 +54,8 @@ export const createTask = async (req, res) => {
         const text = `Name: ${name}\nDescription: ${description}\nStartDate: ${startDate}\nEndDate: ${endDate}\nPriority: ${priority}\nStatus: ${status}\nComments: ${comments}`;
 
         const vectorEmbedding = await getGenAITaskEmbedding(text);
+
+        console.log(vectorEmbedding);
 
         await index.upsert([
             {
@@ -84,8 +77,21 @@ export const createTask = async (req, res) => {
             }
         ])
 
+        // for testing if data is properly set into pinecone DB
+        // const response = await index.query({
+        //     vector: vectorEmbedding,
+        //     topK: 1,
+        //     includeValues: true,
+        //     includeMetadata: true,
+        // });
+
+        // console.log(JSON.stringify(response, null, 2));
+
+
         task.vectorized = true;
         await task.save();
+
+
 
         return res.status(200).json({
             message: "Task created successfully",

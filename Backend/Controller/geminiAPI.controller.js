@@ -14,86 +14,9 @@ const pinecone = new Pinecone({
     apiKey: `${process.env.PINECONE_API_KEY}`,
 })
 
-const index = process.env.PINECONE_INDEX_NAME;
-const indexHost = process.env.PINECONE_INDEX_HOST;
+const indexName = process.env.PINECONE_INDEX_NAME;
+const index = pinecone.Index(indexName);
 
-
-export const GetGenAIPineconeSemanticSearch = async (req, res) => {
-    try {
-        const { query } = req.body;
-
-        if (!query) {
-            return res.status(400).json({
-                message: "No query recieved",
-                success: false,
-            })
-        }
-
-        const queryEmbedding = await getGenAITaskEmbedding(query);
-
-        const nameSpace = pinecone.index(index, indexHost).namespace("default");
-
-        const response = await nameSpace.query({
-            topK: 5,
-            vector: queryEmbedding,
-            includeValues: false,
-            includeMetadata: true,
-        })
-
-        const scored = response.matches.map((match) => ({
-            id: match.id,
-            score: match.score,
-            ...match.metadata,
-        }));
-
-        console.log(JSON.stringify(response, null, 2));
-
-
-        return res.status(200).json({
-            message: "Task assistant reply fetched successfully",
-            success: true,
-            scored,
-        })
-       
-    } catch (error) {
-        return res.status(500).json({
-            message: `${error}`,
-            success: false,
-        })
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function cosineSimilarity(vec1, vec2) {
-    const dot = vec1.reduce((sum, v, i) => sum + v * vec2[i], 0);
-    const mag1 = Math.sqrt(vec1.reduce((sum, v) => sum + v * v, 0));
-    const mag2 = Math.sqrt(vec2.reduce((sum, v) => sum + v * v, 0));
-    return dot / (mag1 * mag2);
-}
 
 //testing done working well
 export const getGenAITaskEmbedding = async (texts) => {
@@ -115,9 +38,8 @@ export const getGenAITaskEmbedding = async (texts) => {
     }
 }
 
-// testing done as well
-
-export const getGenAISmartSearch = async (req, res) => {
+// tested working semantic search as well 
+export const GetGenAIPineconeSemanticSearch = async (req, res) => {
     try {
         const { query } = req.body;
 
@@ -130,23 +52,27 @@ export const getGenAISmartSearch = async (req, res) => {
 
         const queryEmbedding = await getGenAITaskEmbedding(query);
 
-        const tasks = await Task.find({ created_by: req.id });
 
-        const scored = tasks.map((task) => {
-            const taskObj = task.toObject();
-            const score = cosineSimilarity(taskObj.embedding, queryEmbedding);
-            delete taskObj.embedding;
-            return { ...taskObj, score };
+        const response = await index.query({
+            topK: 5,
+            vector: queryEmbedding,
+            includeValues: false,
+            includeMetadata: true,
         })
 
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 5);
+        const scored = response.matches.map((match) => ({
+            id: match.id,
+            score: match.score,
+            task: match.metadata,
+        }));
+
+        console.log(JSON.stringify(response, null, 2));
 
 
         return res.status(200).json({
             message: "Task assistant reply fetched successfully",
             success: true,
-            scored
+            scored,
         })
 
     } catch (error) {
@@ -156,6 +82,55 @@ export const getGenAISmartSearch = async (req, res) => {
         })
     }
 }
+
+function cosineSimilarity(vec1, vec2) {
+    const dot = vec1.reduce((sum, v, i) => sum + v * vec2[i], 0);
+    const mag1 = Math.sqrt(vec1.reduce((sum, v) => sum + v * v, 0));
+    const mag2 = Math.sqrt(vec2.reduce((sum, v) => sum + v * v, 0));
+    return dot / (mag1 * mag2);
+}
+
+
+// testing done as well but using mongoDB
+// export const getGenAISmartSearch = async (req, res) => {
+//     try {
+//         const { query } = req.body;
+
+//         if (!query) {
+//             return res.status(400).json({
+//                 message: "No query recieved",
+//                 success: false,
+//             })
+//         }
+
+//         const queryEmbedding = await getGenAITaskEmbedding(query);
+
+//         const tasks = await Task.find({ created_by: req.id });
+
+//         const scored = tasks.map((task) => {
+//             const taskObj = task.toObject();
+//             const score = cosineSimilarity(taskObj.embedding, queryEmbedding);
+//             delete taskObj.embedding;
+//             return { ...taskObj, score };
+//         })
+
+//             .sort((a, b) => b.score - a.score)
+//             .slice(0, 5);
+
+
+//         return res.status(200).json({
+//             message: "Task assistant reply fetched successfully",
+//             success: true,
+//             scored
+//         })
+
+//     } catch (error) {
+//         return res.status(500).json({
+//             message: `${error}`,
+//             success: false,
+//         })
+//     }
+// }
 
 export const getGenAISuggestions = async (tasks, query) => {
     try {
