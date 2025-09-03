@@ -106,4 +106,4 @@ Taskify.ai makes it **AI-first, GenZ-friendly, and super smart** 💡.
 ## 🧑‍💻 Author  
 
 👨‍💻 Built with ❤️ by **Mr M**  
-🔗 [LinkedIn](https://linkedin.com) | [GitHub](https://github.com)  
+🔗 [LinkedIn](https://www.linkedin.com/in/manav-lade/) | [GitHub](https://github.com/manavlade)  
