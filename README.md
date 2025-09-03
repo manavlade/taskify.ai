@@ -60,8 +60,8 @@ Powered by **Gemini API + Pinecone + LangChain**, Taskify.ai makes your producti
 
 ```bash
 # Clone repo
-git clone https://github.com/your-username/zaptask.git
-cd zaptask
+git clone https://github.com/your-username/taskifyai.git
+cd taskifyai
 
 # Install dependencies
 npm install
