@@ -17,8 +17,9 @@ const pinecone = new Pinecone({
 const indexName = process.env.PINECONE_INDEX_NAME;
 const index = pinecone.Index(indexName);
 
+const userChats = {};
 
-//testing done working well
+
 export const getGenAITaskEmbedding = async (texts) => {
     try {
         const response = await genAI.models.embedContent({
@@ -38,7 +39,7 @@ export const getGenAITaskEmbedding = async (texts) => {
     }
 }
 
-// tested working semantic search as well 
+
 export const GetGenAIPineconeSemanticSearch = async (req, res) => {
     try {
         const { query } = req.body;
@@ -91,6 +92,199 @@ function cosineSimilarity(vec1, vec2) {
 }
 
 
+const queryPinecone = async (query) => {
+    try {
+
+        if (!query) {
+            return res.status(400).json({
+                message: "No query recieved",
+                success: false,
+            })
+        }
+
+        const queryEmbedding = await getGenAITaskEmbedding(query);
+
+        const response = await index.query({
+            topK: 5,
+            vector: queryEmbedding,
+            includeMetadata: true,
+        })
+
+        if (!response) {
+            return res.status(400).json({
+                message: "No response recieved from pinecone vector database",
+                success: false,
+            })
+        }
+
+        return response.matches.map((match) => ({
+            id: match.id,
+            score: match.score,
+            ...match.metadata
+        }));
+
+
+    } catch (error) {
+        return error;
+    }
+}
+
+
+export const GetGenAISmartAssistantReply = async (req, res) => {
+    try {
+
+        const userId = req.id;
+        const { message } = req.body;
+
+        if (!message) {
+            return res.status(400).json({
+                message: "No message recieved",
+                success: false,
+            })
+        }
+
+
+        if (!userChats[userId]) {
+            userChats[userId] = genAI.chats.create({
+                model: 'gemini-2.5-flash',
+                history: [],
+            })
+        }
+
+        const chat = userChats[userId];
+
+        const pineconeResults = await queryPinecone(message);
+        let contextText = "";
+
+        if (pineconeResults?.length > 0) {
+            contextText = pineconeResults
+                .map((t) => `Task: ${t.name}, Description: ${t.description}, Priority: ${t.priority}, Status: ${t.status}, Comments: ${t.comments}, StartDate ${t.startDate}, EndDate ${t.endDate} \n`)
+                .join("\n");
+        }
+
+        const response = await chat.sendMessage({
+            message: contextText
+                ? `${message}\n\nContext:\n${contextText}`
+                : message,
+        });
+
+        if (!response) {
+            return res.status(400).json({
+                message: "No response recieved from gemini API",
+                success: false,
+            })
+        }
+
+        return res.status(200).json({
+            message: "Smart assistant reply fetched successfully",
+            success: true,
+            data: response.text.trim()
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            message: `${error}`,
+            success: false,
+        })
+    }
+}
+
+
+export const GetGenAISentimentAnalysis = async (req, res) => {
+
+    try {
+        const tasks = await Task.find({ created_by: req.id });
+
+        if (!tasks || tasks.length === 0) {
+            return res.status(404).json({
+                message: "No tasks found",
+                success: false,
+            });
+        }
+
+        console.log(tasks);
+
+        const formattedTasks = tasks
+            .map((t, i) => `${i + 1}. ${t.comments} | Priority: ${t.priority} | Status: ${t.status}`)
+            .join("\n");
+
+        const messages = [
+            {
+                role: "system",
+                content: `You are an AI assistant named ZapTask. 
+              Perform a deep sentiment analysis on the provided tasks. 
+              Instructions:
+              1. Identify all emotions (not just positive/negative/neutral).
+              2. Include joy, sadness, anger, fear, surprise, disgust, anticipation, trust, and any other relevant emotions.
+              3. For each emotion, calculate its percentage of the overall dataset.
+              4. Return output ONLY in JSON array format:
+              [
+                { "emotion": "<emotion_name>", "percentage": <number> },
+                ...
+              ]`,
+            },
+            {
+                role: "user",
+                content: `Here are my tasks:\n${formattedTasks}`,
+            },
+        ];
+
+
+        const response = await genAI.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: messages,
+            config: {
+                systemInstruction: "You are a helpful AI assistant for task management that answers questions about tasks as you have access to what tasks the user has created. Your name is ZapTask"
+            }
+        })
+
+        const aiText =
+            response?.response?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
+            "No analysis generated";
+
+        let sentimentData;
+        try {
+            sentimentData = JSON.parse(aiText);
+        } catch (e) {
+            sentimentData = aiText;
+        }
+
+        return res.status(200).json({
+            message: "Task sentiment analysis fetched successfully",
+            success: true,
+            data: sentimentData
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            message: `${error}`,
+            success: false,
+        })
+    }
+}
+
+
+export const getGenAIDuplicateTaskDetection = async (descriptionEmbedding, req) => {
+    try {
+
+        const tasks = await Task.find({ created_by: req.id })
+
+        for (const task of tasks) {
+            const similarity = cosineSimilarity(descriptionEmbedding, task.embedding);
+            if (similarity > 0.8) {
+                return true;
+            }
+        }
+        return false;
+
+    } catch (error) {
+        console.log(error);
+        return error;
+    }
+
+}
+
+
 // testing done as well but using mongoDB
 // export const getGenAISmartSearch = async (req, res) => {
 //     try {
@@ -131,150 +325,3 @@ function cosineSimilarity(vec1, vec2) {
 //         })
 //     }
 // }
-
-export const getGenAISuggestions = async (tasks, query) => {
-    try {
-
-        const queryEmbedding = await getGenAITaskEmbedding(query);
-
-        const scoredTask = tasks.map(task => ({
-            ...task,
-            score: cosineSimilarity(task.embedding, queryEmbedding)
-        }))
-
-        const topTasks = scoredTask.sort((a, b) => b.score - a.score).slice(0, 5);
-
-        const formattedTask = topTasks.map(
-            (t, i) => `${i + 1}. ${t.name} ${t.priority} ${t.status} ${t.endDate} ${t.actualTime} ${t.completed}`
-        )
-
-        const messages = [
-            {
-                role: "system",
-                content: "You are a helpful AI assistant for task management.."
-            },
-            {
-                role: "user",
-                content: `Here are my tasks:\n${formattedTask}\n\n${query}`
-            },
-        ]
-
-        const response = await genAI.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: messages,
-            config: {
-                systemInstruction: "You are a helpful AI assistant for task management that answers questions about tasks as you have access to what tasks the user has created. Your name is ZapTask"
-            }
-        })
-
-        return response.text.trim();
-    } catch (error) {
-        console.log(error);
-        return error;
-    }
-}
-
-export const getGenAIAssistantReply = async (req, res) => {
-    try {
-
-        const { query } = req.body;
-
-        if (!query) {
-            return res.status(400).json({
-                message: "No query recieved",
-                success: false,
-            })
-        }
-
-        const tasks = await Task.find({ created_by: req.id });
-
-        const response = await getGenAISuggestions(tasks, query);
-
-        return res.status(200).json({
-            message: "Task assistant reply fetched successfully",
-            success: true,
-            response
-        })
-    } catch (error) {
-        return res.status(500).json({
-            message: `${error}`,
-            success: false,
-        })
-    }
-}
-
-
-export const getGenAISentimentAnalysis = async (req, res) => {
-
-    try {
-        const tasks = await Task.findById(req.id);
-
-        const formtattedTasks = tasks.map(
-            (t, i) => `${i + 1}. ${t.comments} ${t.priority} ${t.status}`
-        )
-
-        const messages = [
-            {
-                role: "system",
-                content: JSON.stringify({
-                    task: "Perform sentiment analysis on the provided dataset.",
-                    instructions: {
-                        1: "Analyze the text data and identify all relevant emotions expressed within it.",
-                        2: "Do not limit the emotions to positive, negative, or neutral; include a comprehensive range of emotions such as joy, sadness, anger, fear, surprise, disgust, anticipation, trust, and any other applicable sentiments.",
-                        3: "For each identified emotion, calculate the percentage of the overall text that conveys that sentiment.",
-                        4: "Structure the output in a JSON format with the following structure: {emotion: <emotion_name>, percentage: <percentage_value>}",
-                        5: "Ensure the analysis reflects the nuanced sentiment conveyed in the text, capturing subtle variations in emotional expression."
-                    },
-                    output_format: "Return the results as an array of JSON objects, each containing an emotion and its corresponding percentage."
-                })
-            },
-            {
-                role: "user",
-                content: `Here are my tasks:\n${formtattedTasks}`
-            }
-        ]
-
-        const response = await genAI.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: messages,
-            config: {
-                systemInstruction: "You are a helpful AI assistant for task management that answers questions about tasks as you have access to what tasks the user has created. Your name is ZapTask"
-            }
-        })
-
-        return res.status(200).json({
-            message: "Task sentiment analysis fetched successfully",
-            success: true,
-            // data: response
-            data: response.text.trim()
-        })
-
-    } catch (error) {
-        return res.status(500).json({
-            message: `${error}`,
-            success: false,
-        })
-    }
-}
-
-
-export const getGenAIDuplicateTaskDetection = async (descriptionEmbedding, req) => {
-    try {
-
-        const tasks = await Task.find({ created_by: req.id })
-
-        for (const task of tasks) {
-            const similarity = cosineSimilarity(descriptionEmbedding, task.embedding);
-            if (similarity > 0.8) {
-                return true;
-            }
-        }
-        return false;
-
-    } catch (error) {
-        console.log(error);
-        return error;
-    }
-
-}
-
